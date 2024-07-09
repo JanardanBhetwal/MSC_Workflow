@@ -32,6 +32,7 @@ http://localhost:7188
 
 If you encounter issues, make sure the Docker service is running on your machine. You can check the Docker service status by running:
 docker info
+
 If Docker is not running, start it from the Docker Desktop application or restart the Docker service.
 
 ## Contributing
