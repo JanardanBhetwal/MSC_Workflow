@@ -8,4 +8,4 @@ temp_python_spreadsheet.xlsx
 myenv
 __pycache__/
 *.pyc
-static
+# static
