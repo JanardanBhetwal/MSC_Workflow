@@ -1,5 +1,5 @@
-# Use Python 3.6.5 as a parent image
-FROM python:3.6.5-slim
+FROM python:3.11-slim
+
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -8,19 +8,23 @@ ENV PYTHONUNBUFFERED=1
 # Set the working directory in the container
 WORKDIR /app
 
-# Install dependencies
+# Copy the requirements file to the container
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the current directory contents into the container at /app/
+# Copy the entire current directory to /app/
 COPY . /app/
 
-# Expose port 7188 for the Django app
+COPY start-server.sh /app/
+
+# Ensure the start-server script is executable
+RUN chmod +x /app/start-server.sh
+
+# Verify the contents of the /app directory
+RUN ls -l /app/
+
+# Expose port 7188 for the application
 EXPOSE 7188
 
-# Define the health check with an increased start period
-HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
-    CMD curl -f http://localhost:7188/health/ || exit 1
-
 # Run the application
-CMD ["python", "manage.py", "runserver", "0.0.0.0:7188"]
+ENTRYPOINT ["sh", "-c", "ls -l /app && /app/start-server.sh"]

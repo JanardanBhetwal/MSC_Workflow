@@ -2,8 +2,6 @@
 import pandas as pd
 
 from django.shortcuts import render, redirect
-from django.core.exceptions import ObjectDoesNotExist
-# from django.contrib.auth.decorators import user_passes_test
 
 from . import utils
 import os
@@ -13,49 +11,16 @@ from .forms import NoticeForm, MidTermThesisCommittee, StudentFormset, \
 from django.http import HttpResponse
 import uuid
 from django.contrib import messages
+from django.http import JsonResponse
 
-# Create your views here.
-
+def health_check(request):
+    return JsonResponse({"status": "ok"})
 
 def index(request):
     return render(request, 'thesis/home.html')
 
-
 def invalid(request):
     return render(request, 'thesis/invalid.html')
-
-# def is_coordinator(user):
-#     try:
-#         Coordinator.objects.get(user=user)
-#         return True
-#     except Coordinator.DoesNotExist:
-#         return False
-
-
-# def budget(request):
-#     if request.method == 'POST':
-#         formset = BudgetFormset(request.POST)
-#         print(formset.errors)
-#         if formset.is_valid():
-#             formset.save()
-#
-#         return redirect('budget')
-#     else:
-#         formset = BudgetFormset(queryset=Budget.objects.all())
-#         return render(request, 'thesis/budget.html', {'formset': formset})
-
-#
-# def admin(request):
-#     if request.method == 'POST':
-#         formset = AdministratorForm(request.POST)
-#         print(formset.errors)
-#         if formset.is_valid():
-#             formset.save()
-#         return redirect('index')
-#     else:
-#         formset = AdministratorForm(queryset=Admin.objects.all())
-#         return render(request, 'thesis/admin_setting.html', {'formset': formset})
-
 
 def proposal_entries(request):
     return render(request, 'thesis/proposal_entries.html')
@@ -67,7 +32,6 @@ def midterm_entries(request):
 
 def final_entries(request):
     return render(request, 'thesis/final_entries.html')
-
 
 def students(request):
     if request.method == 'POST':
@@ -100,162 +64,168 @@ def students(request):
         return render(request, 'thesis/students.html', {'formset': formset})
 
 
-# def supervisor(request):
-#     if request.method == 'POST':
-#         formset = SupervisorForm(request.POST)
-#         print(formset.errors)
-#         if formset.is_valid():
-#             instances = formset.save(commit=False)
-#             for i in instances:
-#                 if i.remove is True:
-#                     i.delete()
-#                 else:
-#                     i.save()
-#         return redirect('supervisor')
-#     else:
-#         formset = SupervisorForm(queryset=Supervisor.objects.all())
-#         return render(request, 'thesis/supervisor.html', {'formset': formset})
-
-
-# def examiner(request):
-#     if request.method == 'POST':
-#         formset = ExaminerForm(request.POST)
-#         print(formset.errors)
-#         if formset.is_valid():
-#             instances = formset.save(commit=False)
-#             for i in instances:
-#                 if i.remove is True:
-#                     i.delete()
-#                 else:
-#                     i.save()
-#             return redirect('examiner')
-#         else:
-#             return redirect('invalid')
-#     else:
-#         formset = ExaminerForm(queryset=Examiner.objects.all())
-#         return render(request, 'thesis/examiner.html', {'formset': formset})
-
-
-# @user_passes_test(is_coordinator)
 def proposalNotice(request):
     if request.method == 'POST':
         form = NoticeForm(request.POST)
         formExtra = NoticeFormExtra(request.POST)
-        try:
-            admins = Coordinator.objects.get(user=request.user.id)
-        except ObjectDoesNotExist:
-            return HttpResponse("You are not authorized to perform this action. Only coordinator can generate this notice.")
+        
         if form.is_valid() and formExtra.is_valid():
-            admins = Coordinator.objects.all().get(user=request.user.id)
-            form.save()
-            Common = CommonFields.objects.all()
-            if len(Common) > 1:
-                Common[0].delete()
-            context = form.cleaned_data
-            contextFormExtra = formExtra.cleaned_data
-            defenseDate = str(Common[0].defenseDate)
-            studentBatch = str(Common[0].studentBatch)
-            context['programName'] = str(admins.programName)
-            context['coordinatorName'] = str(admins.coordinatorName)
-            context['batch'] = studentBatch
-            context['defensedate'] = defenseDate
-            context['submissionTime'] = contextFormExtra['submissionTime']
-            context['submissionDate'] = contextFormExtra['submissionDate']
-            src_add = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Proposal'),
-                'ProposalNotice1.docx')
-            output_path = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Proposal'),
-                f"ProposalNotice1_{uuid.uuid4()}.docx")
-            utils.render_to_word(src_add, output_path, context)
-            
-            response = HttpResponse(open(output_path, 'rb').read())
-            response['Content-Type'] = 'mimetype/submimetype'
-            response['Content-Disposition'] = 'attachment; filename=ProposalNotice1.docx'
-            # messages.success(request, "The Download is starting...")
-            return response
-            # return redirect('thesis:index')
+            try:
+                # Use filter and first() to safely get the first matching coordinator or None
+                admins = Coordinator.objects.filter(user=request.user.id).first()
+                
+                if not admins:
+                    # Handle case where no coordinator is found
+                    messages.error(request, "No coordinator found for the current user.")
+                    return redirect('thesis:invalid')  # Or render a specific error page
+                
+                form.save()
+                Common = CommonFields.objects.all()
+                if len(Common) > 1:
+                    Common[0].delete()
+                
+                context = form.cleaned_data
+                contextFormExtra = formExtra.cleaned_data
+                defenseDate = str(Common[0].defenseDate)
+                studentBatch = str(Common[0].studentBatch)
+                
+                context['programName'] = str(admins.programName)
+                context['coordinatorName'] = str(admins.coordinatorName)
+                context['batch'] = studentBatch
+                context['defensedate'] = defenseDate
+                context['submissionTime'] = contextFormExtra['submissionTime']
+                context['submissionDate'] = contextFormExtra['submissionDate']
+                
+                src_add = os.path.join(
+                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Proposal'),
+                    'ProposalNotice.docx'
+                )
+                output_path = os.path.join(
+                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Proposal'),
+                    f"ProposalNotice_{uuid.uuid4()}.docx"
+                )
+                utils.render_to_word(src_add, output_path, context)
+                
+                response = HttpResponse(open(output_path, 'rb').read())
+                response['Content-Type'] = 'mimetype/submimetype'
+                response['Content-Disposition'] = 'attachment; filename=ProposalNotice.docx'
+                # messages.success(request, "The Download is starting...")
+                return response
+                
+            except Exception as e:
+                # Log the exception and redirect to an error page or show an error message
+                messages.error(request, f"An unexpected error occurred: {e}")
+                return redirect('thesis:invalid')
         else:
             return redirect('thesis:invalid')
-
     else:
         form = NoticeForm()
         formExtra = NoticeFormExtra()
         return render(request, 'thesis/proposalAndFinalNotice.html', {'form': form, 'formExtra': formExtra})
 
-
 def midTermNotice(request):
     if request.method == 'POST':
         form = NoticeForm(request.POST)
-        print(form.errors)
-        try:
-            admins = Coordinator.objects.get(user=request.user.id)
-        except ObjectDoesNotExist:
-            return HttpResponse("You are not authorized to perform this action. Only coordinator can generate this notice.")
+        
         if form.is_valid():
-            admins = Coordinator.objects.all().get(user=request.user.id)
-            form.save()
-            Common = CommonFields.objects.all()
-            if len(Common) > 1:
-                Common[0].delete()
-            context = form.cleaned_data
-            context['programName'] = str(admins.programName)
-            context['coordinatorName'] = str(admins.coordinatorName)
-            src_add = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Midterm'),
-                'MidtermNotice.docx')
-            output_path = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Midterm'),
-                'midtermNotice.docx')
-            
-            utils.render_to_word(src_add, output_path, context)
-            response = HttpResponse(open(output_path, 'rb').read())
-            response['Content-Type'] = 'mimetype/submimetype'
-            response['Content-Disposition'] = 'attachment; filename=midtermNotice.docx'
-            # messages.success(request, "The Download is starting...")
-            return response
-            # return redirect('thesis:index')
+            try:
+                # Use filter and first() to safely get the first matching coordinator or None
+                admins = Coordinator.objects.filter(user=request.user.id).first()
+                
+                if not admins:
+                    # Handle case where no coordinator is found
+                    messages.error(request, "No coordinator found for the current user.")
+                    return redirect('thesis:invalid')  # Or render a specific error page
+
+                form.save()
+                Common = CommonFields.objects.all()
+                if len(Common) > 1:
+                    Common[0].delete()
+                
+                context = form.cleaned_data
+                context['programName'] = str(admins.programName)
+                context['coordinatorName'] = str(admins.coordinatorName)
+                
+                src_add = os.path.join(
+                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Midterm'),
+                    'MidtermNotice.docx'
+                )
+                output_path = os.path.join(
+                    os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'),
+                    'Midterm', 'midtermNotice.docx'
+                )
+                
+                utils.render_to_word(src_add, output_path, context)
+                response = HttpResponse(open(output_path, 'rb').read())
+                response['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                response['Content-Disposition'] = 'attachment; filename=midtermNotice.docx'
+                
+                return response
+                
+            except Exception as e:
+                # Log the exception and handle the error
+                messages.error(request, f"An unexpected error occurred: {e}")
+                return redirect('thesis:invalid')
+        else:
+            # Handle form errors
+            messages.error(request, "Form validation failed. Please correct the errors and try again.")
+            return render(request, 'thesis/midTermNotice.html', {'form': form})
 
     else:
         form = NoticeForm()
-        context = {'form': form}
-        return render(request, 'thesis/midTermNotice.html', context)
-
+        return render(request, 'thesis/midTermNotice.html', {'form': form})
 
 def finalNotice(request):
     if request.method == 'POST':
         form = NoticeForm(request.POST)
         formExtra = NoticeFormExtra(request.POST)
-        try:
-            admins = Coordinator.objects.get(user=request.user.id)
-        except ObjectDoesNotExist:
-            return HttpResponse("You are not authorized to perform this action. Only coordinator can generate this notice.")
+        
         if form.is_valid() and formExtra.is_valid():
-            admins = Coordinator.objects.all().get(user=request.user.id)
-            form.save()
-            Common = CommonFields.objects.all()
-            if len(Common) > 1:
-                Common[0].delete()
-            context = form.cleaned_data
-            contextFormExtra = formExtra.cleaned_data
-            context['submissionTime'] = contextFormExtra['submissionTime']
-            context['submissionDate'] = contextFormExtra['submissionDate']
-            context['programName'] = str(admins.programName)
-            context['coordinatorName'] = str(admins.coordinatorName)
-            print (context)
-            src_add = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Final'),
-                'FinalNotice.docx')
-            output_path  = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Final'),
-                'finalNotice.docx')
-            utils.render_to_word(src_add, output_path, context)
-            response = HttpResponse(open(output_path, 'rb').read())
-            response['Content-Type'] = 'mimetype/submimetype'
-            response['Content-Disposition'] = 'attachment; filename=finalNotice.docx'
-            # messages.success(request, "The Download is starting...")
-            return response
-            # return redirect('thesis:index')
+            try:
+                # Use filter and first() to safely get the first matching coordinator or None
+                admins = Coordinator.objects.filter(user=request.user.id).first()
+                
+                if not admins:
+                    # Handle case where no coordinator is found
+                    messages.error(request, "No coordinator found for the current user.")
+                    return redirect('thesis:invalid')  # Or render a specific error page
+
+                form.save()
+                Common = CommonFields.objects.all()
+                if len(Common) > 1:
+                    Common[0].delete()
+                
+                context = form.cleaned_data
+                contextFormExtra = formExtra.cleaned_data
+                context['submissionTime'] = contextFormExtra['submissionTime']
+                context['submissionDate'] = contextFormExtra['submissionDate']
+                context['programName'] = str(admins.programName)
+                context['coordinatorName'] = str(admins.coordinatorName)
+                
+                src_add = os.path.join(
+                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Final'),
+                    'FinalNotice.docx'
+                )
+                output_path = os.path.join(
+                    os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'),
+                    'Final', 'finalNotice.docx'
+                )
+                
+                utils.render_to_word(src_add, output_path, context)
+                response = HttpResponse(open(output_path, 'rb').read())
+                response['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                response['Content-Disposition'] = 'attachment; filename=finalNotice.docx'
+                
+                return response
+                
+            except Exception as e:
+                # Log the exception and handle the error
+                messages.error(request, f"An unexpected error occurred: {e}")
+                return redirect('thesis:invalid')
+        else:
+            # Handle form errors
+            messages.error(request, "Form validation failed. Please correct the errors and try again.")
+            return render(request, 'thesis/proposalAndFinalNotice.html', {'form': form, 'formExtra': formExtra})
 
     else:
         form = NoticeForm()
@@ -265,10 +235,6 @@ def finalNotice(request):
 
 def midtermthesislist(request):
     if request.method == 'POST':
-        try:
-            admins = Coordinator.objects.get(user=request.user.id)
-        except ObjectDoesNotExist:
-            return HttpResponse("You are not authorized to perform this action. Only coordinator can generate this notice.")
         budgets = Budget.objects.all().get()
         admins = Coordinator.objects.all().get(user=request.user.id)
         Common = CommonFields.objects.all()
@@ -416,9 +382,9 @@ def midtermthesislist(request):
 
             k = 0
             for name in committeeMembers:
-                if k is 0:
+                if k == 0:
                     post = 'Supervisor Member Secretary'
-                elif k is 1:
+                elif k == 1:
                     post = 'Supervisor Member'
                 else:
                     post = 'Supervisor Chairman'
@@ -537,10 +503,6 @@ def midtermthesislist(request):
 # TODO Error, not filling the template
 def finalthesislist(request):
     if request.method == 'POST':
-        try:
-            admins = Coordinator.objects.get(user=request.user.id)
-        except ObjectDoesNotExist:
-            return HttpResponse("You are not authorized to perform this action. Only coordinator can generate this notice.")
         budgets = Budget.objects.all().get()
         admins = Coordinator.objects.all().get(user=request.user.id)
         Common = CommonFields.objects.all()
@@ -689,9 +651,9 @@ def finalthesislist(request):
 
             k = 0
             for name in committeeMembers:
-                if k is 0:
+                if k == 0:
                     post = 'Supervisor Member Secretary'
-                elif k is 1:
+                elif k == 1:
                     post = 'Supervisor Member'
                 else:
                     post = 'Supervisor Chairman'
@@ -809,10 +771,6 @@ def finalthesislist(request):
 
 def results(request):
     if request.method == 'POST':
-        try:
-            admins = Coordinator.objects.get(user=request.user.id)
-        except ObjectDoesNotExist:
-            return HttpResponse("You are not authorized to perform this action. Only coordinator can generate this notice.")
         form = CurrentDate(request.POST)
         formset = ResultFormset(request.POST)
         Common = CommonFields.objects.all()
@@ -885,3 +843,4 @@ def results(request):
         formset = ResultFormset(
             queryset=Student.objects.filter(midterm=True).filter(final=True).filter(totalMarks=None))
         return render(request, 'thesis/results.html', {'formset': formset, 'form': form})
+
