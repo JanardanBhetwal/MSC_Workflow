@@ -2,6 +2,8 @@
 import pandas as pd
 
 from django.shortcuts import render, redirect
+from django.core.exceptions import ObjectDoesNotExist
+# from django.contrib.auth.decorators import user_passes_test
 
 from . import utils
 import os
@@ -21,6 +23,13 @@ def index(request):
 
 def invalid(request):
     return render(request, 'thesis/invalid.html')
+
+# def is_coordinator(user):
+#     try:
+#         Coordinator.objects.get(user=user)
+#         return True
+#     except Coordinator.DoesNotExist:
+#         return False
 
 
 # def budget(request):
@@ -127,10 +136,15 @@ def students(request):
 #         return render(request, 'thesis/examiner.html', {'formset': formset})
 
 
+# @user_passes_test(is_coordinator)
 def proposalNotice(request):
     if request.method == 'POST':
         form = NoticeForm(request.POST)
         formExtra = NoticeFormExtra(request.POST)
+        try:
+            admins = Coordinator.objects.get(user=request.user.id)
+        except ObjectDoesNotExist:
+            return HttpResponse("You are not authorized to perform this action. Only coordinator can generate this notice.")
         if form.is_valid() and formExtra.is_valid():
             admins = Coordinator.objects.all().get(user=request.user.id)
             form.save()
@@ -149,15 +163,15 @@ def proposalNotice(request):
             context['submissionDate'] = contextFormExtra['submissionDate']
             src_add = os.path.join(
                 os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Proposal'),
-                'ProposalNotice.docx')
+                'ProposalNotice1.docx')
             output_path = os.path.join(
                 os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Proposal'),
-                f"ProposalNotice_{uuid.uuid4()}.docx")
+                f"ProposalNotice1_{uuid.uuid4()}.docx")
             utils.render_to_word(src_add, output_path, context)
             
             response = HttpResponse(open(output_path, 'rb').read())
             response['Content-Type'] = 'mimetype/submimetype'
-            response['Content-Disposition'] = 'attachment; filename=ProposalNotice.docx'
+            response['Content-Disposition'] = 'attachment; filename=ProposalNotice1.docx'
             # messages.success(request, "The Download is starting...")
             return response
             # return redirect('thesis:index')
@@ -174,6 +188,10 @@ def midTermNotice(request):
     if request.method == 'POST':
         form = NoticeForm(request.POST)
         print(form.errors)
+        try:
+            admins = Coordinator.objects.get(user=request.user.id)
+        except ObjectDoesNotExist:
+            return HttpResponse("You are not authorized to perform this action. Only coordinator can generate this notice.")
         if form.is_valid():
             admins = Coordinator.objects.all().get(user=request.user.id)
             form.save()
@@ -208,6 +226,10 @@ def finalNotice(request):
     if request.method == 'POST':
         form = NoticeForm(request.POST)
         formExtra = NoticeFormExtra(request.POST)
+        try:
+            admins = Coordinator.objects.get(user=request.user.id)
+        except ObjectDoesNotExist:
+            return HttpResponse("You are not authorized to perform this action. Only coordinator can generate this notice.")
         if form.is_valid() and formExtra.is_valid():
             admins = Coordinator.objects.all().get(user=request.user.id)
             form.save()
@@ -243,6 +265,10 @@ def finalNotice(request):
 
 def midtermthesislist(request):
     if request.method == 'POST':
+        try:
+            admins = Coordinator.objects.get(user=request.user.id)
+        except ObjectDoesNotExist:
+            return HttpResponse("You are not authorized to perform this action. Only coordinator can generate this notice.")
         budgets = Budget.objects.all().get()
         admins = Coordinator.objects.all().get(user=request.user.id)
         Common = CommonFields.objects.all()
@@ -511,6 +537,10 @@ def midtermthesislist(request):
 # TODO Error, not filling the template
 def finalthesislist(request):
     if request.method == 'POST':
+        try:
+            admins = Coordinator.objects.get(user=request.user.id)
+        except ObjectDoesNotExist:
+            return HttpResponse("You are not authorized to perform this action. Only coordinator can generate this notice.")
         budgets = Budget.objects.all().get()
         admins = Coordinator.objects.all().get(user=request.user.id)
         Common = CommonFields.objects.all()
@@ -779,6 +809,10 @@ def finalthesislist(request):
 
 def results(request):
     if request.method == 'POST':
+        try:
+            admins = Coordinator.objects.get(user=request.user.id)
+        except ObjectDoesNotExist:
+            return HttpResponse("You are not authorized to perform this action. Only coordinator can generate this notice.")
         form = CurrentDate(request.POST)
         formset = ResultFormset(request.POST)
         Common = CommonFields.objects.all()
