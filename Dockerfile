@@ -8,6 +8,10 @@ ENV PYTHONUNBUFFERED=1
 # Set the working directory in the container
 WORKDIR /app
 
+RUN apt-get update && \
+    apt-get install -y curl wget && \
+    apt-get clean
+
 # Copy the requirements file to the container
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt

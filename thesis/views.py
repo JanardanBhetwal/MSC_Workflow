@@ -97,7 +97,7 @@ def proposalNotice(request):
                 context['submissionDate'] = contextFormExtra['submissionDate']
                 
                 src_add = os.path.join(
-                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Proposal'),
+                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Proposal'),
                     'ProposalNotice.docx'
                 )
                 output_path = os.path.join(
@@ -147,7 +147,7 @@ def midTermNotice(request):
                 context['coordinatorName'] = str(admins.coordinatorName)
                 
                 src_add = os.path.join(
-                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Midterm'),
+                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Midterm'),
                     'MidtermNotice.docx'
                 )
                 output_path = os.path.join(
@@ -203,7 +203,7 @@ def finalNotice(request):
                 context['coordinatorName'] = str(admins.coordinatorName)
                 
                 src_add = os.path.join(
-                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Final'),
+                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Final'),
                     'FinalNotice.docx'
                 )
                 output_path = os.path.join(
@@ -312,7 +312,7 @@ def midtermthesislist(request):
                 j = j + 1
 
                 src_add = os.path.join(
-                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Midterm'),
+                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Midterm'),
                     'evalMid_Committee_Member.docx')
                 utils.render_to_word(src_add, os.path.join(os.path.join(os.path.join(
                     os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Midterm')
@@ -320,7 +320,7 @@ def midtermthesislist(request):
                     (str(std.name) + '\'s_Committe_Member_Evaluation.docx')), evaluation)
 
                 src_add = os.path.join(
-                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Midterm'),
+                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Midterm'),
                     'evalMid_External_Examiner.docx')
                 utils.render_to_word(src_add, os.path.join(os.path.join(os.path.join(
                     os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Midterm')
@@ -328,7 +328,7 @@ def midtermthesislist(request):
                     (str(std.examiner) + ' External_Evaluation.docx')), evaluation)
 
                 src_add = os.path.join(
-                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Midterm'),
+                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Midterm'),
                     'evalMid_Supervisor.docx')
                 utils.render_to_word(src_add, os.path.join(os.path.join(os.path.join(
                     os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Midterm')
@@ -349,7 +349,7 @@ def midtermthesislist(request):
             thesisListElements['B2'] = studentBatch
 
             src_add = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Midterm'),
+                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Midterm'),
                 'MidtermThesisList.docx')
             utils.make_table(src_add, os.path.join(
                 os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Midterm'),
@@ -439,7 +439,7 @@ def midtermthesislist(request):
                 if len(stdlist) != 0:
                     context['list'] = stdlist
                     src_add = os.path.join(
-                        os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Midterm'),
+                        os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Midterm'),
                         'LetterToExExaminer.docx')
                     utils.make_table(src_add, os.path.join(
                         os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Midterm'),
@@ -461,7 +461,7 @@ def midtermthesislist(request):
             context2['batch'] = studentBatch
 
             src_add = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Midterm'),
+                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Midterm'),
                 'midTermSalaryDistribution.docx')
             utils.make_table(src_add, os.path.join(
                 os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Midterm'),
@@ -478,7 +478,7 @@ def midtermthesislist(request):
             context1['no'] = numberOfStudents
 
             src_add = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Midterm'),
+                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Midterm'),
                 'MidtermCommittee.docx')
             output_path = os.path.join(
                 os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Midterm'),
@@ -580,7 +580,7 @@ def finalthesislist(request):
                 j = j + 1
 
                 src_add = os.path.join(
-                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Final'),
+                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Final'),
                     'evalfinal_Committee_Member.docx')
                 utils.render_to_word(src_add, os.path.join(os.path.join(os.path.join(
                     os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Final')
@@ -588,7 +588,7 @@ def finalthesislist(request):
                     (str(std.name) + "'s_Committe_Member_Evaluation.docx")), evaluation)
 
                 src_add = os.path.join(
-                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Final'),
+                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Final'),
                     'evalfinal_External_Examiner.docx')
                 utils.render_to_word(src_add, os.path.join(os.path.join(os.path.join(
                     os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Final')
@@ -596,7 +596,7 @@ def finalthesislist(request):
                     (str(std.examiner) + ' External_Evaluation.docx')), evaluation)
 
                 src_add = os.path.join(
-                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Final'),
+                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Final'),
                     'evalfinal_Supervisor.docx')
                 utils.render_to_word(src_add, os.path.join(os.path.join(os.path.join(
                     os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Final')
@@ -618,7 +618,7 @@ def finalthesislist(request):
             thesisListElements['coordinatorName'] = str(admins.coordinatorName)
 
             src_add = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Final'),
+                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Final'),
                 'FinalThesisList.docx')
             utils.make_table(src_add, os.path.join(
                 os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Final'),
@@ -709,7 +709,7 @@ def finalthesislist(request):
                 if len(stdlist) != 0:
                     context['list'] = stdlist
                     src_add = os.path.join(
-                        os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Final'),
+                        os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Final'),
                         'LetterToExExaminer.docx')
                     utils.make_table(src_add, os.path.join(
                         os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Final'),
@@ -731,7 +731,7 @@ def finalthesislist(request):
             context2['batch'] = studentBatch
 
             src_add = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Final'),
+                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Final'),
                 'finalSalaryDistribution.docx')
             utils.make_table(src_add, os.path.join(
                 os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Final'),
@@ -747,7 +747,7 @@ def finalthesislist(request):
             context1['no'] = numberOfStudents
 
             src_add = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Final'),
+                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Final'),
                 'FinalThesisList.docx')
             output_path = os.path.join(
                 os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Final'),
@@ -819,14 +819,14 @@ def results(request):
             thesisListElements['list'] = thesisStdList
 
             src_add = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Final'),
+                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Final'),
                 'FinalThesisResultCover.docx')
             utils.make_table(src_add, os.path.join(
                 os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Final'),
                 'FinalThesisResultCover.docx'), thesisListElements)
 
             src_add = os.path.join(
-                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Templates'), 'Final'),
+                os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Final'),
                 'FinalThesisResult.docx')
             output_path = os.path.join(
                 os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Final'),
