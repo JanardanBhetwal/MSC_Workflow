@@ -13,7 +13,7 @@
     <br>
     <br>
 
-    <form class="form-horizontal" , method='POST' , action="">
+    <form class="form-horizontal" method="POST" action="" enctype="multipart/form-data">
         {% csrf_token %}
         <fieldset>
             <!-- Form Name -->
@@ -68,9 +68,16 @@
                     {{ formExtra.submissionDate }}
                 </div>
             </div>
+                <label style="color: #3c763d" class="col-md-4 control-label" for="template_file">Upload Template</label>
+                <div class="col-md-4">
+                    {{ form.template_file }}
+                </div>
+            </div>
             <br>
             <button id="submit" style="margin-left:45%;" class="btn btn-primary btn-lg">Submit</button>
         </fieldset>
+        <div class="form-group">
+        
     </form>
 
 {% endblock %}

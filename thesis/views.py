@@ -1,7 +1,12 @@
 
 import pandas as pd
 
+from django.shortcuts import render
+from django.conf import settings
+from django.http import Http404
+
 from django.shortcuts import render, redirect
+from django.core.files.storage import default_storage
 
 from . import utils
 import os
@@ -62,22 +67,61 @@ def students(request):
     else:
         formset = StudentFormset(queryset=Student.objects.all())
         return render(request, 'thesis/students.html', {'formset': formset})
+    
+
+# def list_proposal_files(request):
+#     proposal_dir = os.path.join(settings.BASE_DIR, 'Documents', 'Proposal')
+#     files = os.listdir(proposal_dir)
+#     files = [f for f in files if os.path.isfile(os.path.join(proposal_dir, f))]
+    
+#     context = {
+#         'files': files,
+#     }
+    
+#     return render(request, 'docgen/proposal_entries.html', context)
+
+def list_proposal_files(request):
+    proposal_dir = os.path.join(settings.BASE_DIR, 'Documents', 'Proposal')
+    print(f"Directory path: {proposal_dir}")
+    try:
+        files = [f for f in os.listdir(proposal_dir) if os.path.isfile(os.path.join(proposal_dir, f))]
+        print(f"Files found: {files}")
+    except FileNotFoundError:
+        files = []
+        print("Directory not found")
+        
+    context = {
+        'files': files,
+    }
+    return render(request, 'docgen/proposal_entries.html', context)
+
+
+
+def serve_proposal_file(request, filename):
+    proposal_dir = os.path.join(settings.BASE_DIR, 'Documents', 'Proposal')
+    file_path = os.path.join(proposal_dir, filename)
+    
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            response['Content-Disposition'] = f'attachment; filename={filename}'
+            return response
+    else:
+        raise Http404("File does not exist")
 
 
 def proposalNotice(request):
     if request.method == 'POST':
-        form = NoticeForm(request.POST)
+        form = NoticeForm(request.POST, request.FILES)
         formExtra = NoticeFormExtra(request.POST)
         
         if form.is_valid() and formExtra.is_valid():
             try:
-                # Use filter and first() to safely get the first matching coordinator or None
                 admins = Coordinator.objects.filter(user=request.user.id).first()
                 
                 if not admins:
-                    # Handle case where no coordinator is found
                     messages.error(request, "No coordinator found for the current user.")
-                    return redirect('thesis:invalid')  # Or render a specific error page
+                    return redirect('thesis:invalid')
                 
                 form.save()
                 Common = CommonFields.objects.all()
@@ -96,24 +140,27 @@ def proposalNotice(request):
                 context['submissionTime'] = contextFormExtra['submissionTime']
                 context['submissionDate'] = contextFormExtra['submissionDate']
                 
-                src_add = os.path.join(
-                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Proposal'),
-                    'ProposalNotice.docx'
-                )
+                if 'template_file' in request.FILES:
+                    uploaded_file = request.FILES['template_file']
+                    template_path = default_storage.save(uploaded_file.name, uploaded_file)
+                else:
+                    template_path = os.path.join(
+                        os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Proposal'),
+                        'ProposalNotice.docx'
+                    )
+
                 output_path = os.path.join(
                     os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Proposal'),
                     f"ProposalNotice_{uuid.uuid4()}.docx"
                 )
-                utils.render_to_word(src_add, output_path, context)
+                utils.render_to_word(template_path, output_path, context)
                 
                 response = HttpResponse(open(output_path, 'rb').read())
                 response['Content-Type'] = 'mimetype/submimetype'
                 response['Content-Disposition'] = 'attachment; filename=ProposalNotice.docx'
-                # messages.success(request, "The Download is starting...")
                 return response
                 
             except Exception as e:
-                # Log the exception and redirect to an error page or show an error message
                 messages.error(request, f"An unexpected error occurred: {e}")
                 return redirect('thesis:invalid')
         else:

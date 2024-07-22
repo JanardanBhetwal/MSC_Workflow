@@ -113,6 +113,9 @@ class NoticeForm(forms.ModelForm):
         attrs={'class': 'form-control input-md', 'placeholder': '5 minutes', 'required': 'True'}))
     defenseTime = forms.CharField(widget=forms.TextInput(
         attrs={'class': 'form-control input-md', 'placeholder': '1:45 P.M.', 'required': 'True'}))
+    template_file = forms.FileField(required=False, widget=forms.FileInput(
+        attrs={'class': 'form-control input-md'}))
+
 
     class Meta:
         model = CommonFields
