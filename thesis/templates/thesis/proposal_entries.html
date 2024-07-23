@@ -13,7 +13,7 @@
     <ul>
         {% for file in files %}
             <li>
-                <a href="{% url 'serve_proposal_file' file %}" download>
+                <a href="{% url 'thesis:serve_proposal_file' file %}" download>
                     {{ file }}
                 </a>
             </li>

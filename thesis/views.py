@@ -17,6 +17,7 @@ from django.http import HttpResponse
 import uuid
 from django.contrib import messages
 from django.http import JsonResponse
+from .utils import render_to_word
 
 def health_check(request):
     return JsonResponse({"status": "ok"})
@@ -27,8 +28,8 @@ def index(request):
 def invalid(request):
     return render(request, 'thesis/invalid.html')
 
-def proposal_entries(request):
-    return render(request, 'thesis/proposal_entries.html')
+# def proposal_entries(request):
+#     return render(request, 'thesis/proposal_entries.html')
 
 
 def midterm_entries(request):
@@ -81,23 +82,30 @@ def students(request):
 #     return render(request, 'docgen/proposal_entries.html', context)
 
 def list_proposal_files(request):
+    print("Hello from list_proposal_files")
     proposal_dir = os.path.join(settings.BASE_DIR, 'Documents', 'Proposal')
-    print(f"Directory path: {proposal_dir}")
+    print(f"Directory path: {proposal_dir}")  # Debugging output
+
     try:
-        files = [f for f in os.listdir(proposal_dir) if os.path.isfile(os.path.join(proposal_dir, f))]
-        print(f"Files found: {files}")
-    except FileNotFoundError:
-        files = []
-        print("Directory not found")
+        # Verify if the directory exists and list files
+        if os.path.exists(proposal_dir):
+            files = [f for f in os.listdir(proposal_dir) if os.path.isfile(os.path.join(proposal_dir, f))]
+            print(f"Files found: {files}")  # Debugging output
+        else:
+            print("Directory not found")
+            files = []
         
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        files = []
+
     context = {
         'files': files,
     }
-    return render(request, 'docgen/proposal_entries.html', context)
-
-
+    return render(request, 'thesis/proposal_entries.html', context)
 
 def serve_proposal_file(request, filename):
+    print("Hello from serve_proposal_file")
     proposal_dir = os.path.join(settings.BASE_DIR, 'Documents', 'Proposal')
     file_path = os.path.join(proposal_dir, filename)
     
@@ -111,6 +119,7 @@ def serve_proposal_file(request, filename):
 
 
 def proposalNotice(request):
+    print("Hello from Proposal Notice")
     if request.method == 'POST':
         form = NoticeForm(request.POST, request.FILES)
         formExtra = NoticeFormExtra(request.POST)
@@ -140,24 +149,26 @@ def proposalNotice(request):
                 context['submissionTime'] = contextFormExtra['submissionTime']
                 context['submissionDate'] = contextFormExtra['submissionDate']
                 
+                # Save uploaded file to templates/Proposal
                 if 'template_file' in request.FILES:
                     uploaded_file = request.FILES['template_file']
-                    template_path = default_storage.save(uploaded_file.name, uploaded_file)
+                    template_path = os.path.join(settings.BASE_DIR, 'templates', 'Proposal', uploaded_file.name)
+                    with open(template_path, 'wb+') as destination:
+                        for chunk in uploaded_file.chunks():
+                            destination.write(chunk)
                 else:
                     template_path = os.path.join(
-                        os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'), 'Proposal'),
-                        'ProposalNotice.docx'
+                        settings.BASE_DIR, 'templates', 'Proposal', 'ProposalNotice.docx'
                     )
 
                 output_path = os.path.join(
-                    os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Documents'), 'Proposal'),
+                    settings.BASE_DIR, 'Documents', 'Proposal',
                     f"ProposalNotice_{uuid.uuid4()}.docx"
                 )
-                utils.render_to_word(template_path, output_path, context)
+                render_to_word(template_path, output_path, context)
                 
-                response = HttpResponse(open(output_path, 'rb').read())
-                response['Content-Type'] = 'mimetype/submimetype'
-                response['Content-Disposition'] = 'attachment; filename=ProposalNotice.docx'
+                response = HttpResponse(open(output_path, 'rb').read(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                response['Content-Disposition'] = f'attachment; filename={os.path.basename(output_path)}'
                 return response
                 
             except Exception as e:
