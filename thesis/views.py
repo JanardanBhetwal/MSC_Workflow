@@ -70,33 +70,19 @@ def students(request):
         return render(request, 'thesis/students.html', {'formset': formset})
     
 
-# def list_proposal_files(request):
-#     proposal_dir = os.path.join(settings.BASE_DIR, 'Documents', 'Proposal')
-#     files = os.listdir(proposal_dir)
-#     files = [f for f in files if os.path.isfile(os.path.join(proposal_dir, f))]
-    
-#     context = {
-#         'files': files,
-#     }
-    
-#     return render(request, 'docgen/proposal_entries.html', context)
+
 
 def list_proposal_files(request):
-    print("Hello from list_proposal_files")
     proposal_dir = os.path.join(settings.BASE_DIR, 'Documents', 'Proposal')
-    print(f"Directory path: {proposal_dir}")  # Debugging output
 
     try:
         # Verify if the directory exists and list files
         if os.path.exists(proposal_dir):
             files = [f for f in os.listdir(proposal_dir) if os.path.isfile(os.path.join(proposal_dir, f))]
-            print(f"Files found: {files}")  # Debugging output
         else:
-            print("Directory not found")
             files = []
         
     except Exception as e:
-        print(f"An error occurred: {e}")
         files = []
 
     context = {
@@ -105,7 +91,6 @@ def list_proposal_files(request):
     return render(request, 'thesis/proposal_entries.html', context)
 
 def serve_proposal_file(request, filename):
-    print("Hello from serve_proposal_file")
     proposal_dir = os.path.join(settings.BASE_DIR, 'Documents', 'Proposal')
     file_path = os.path.join(proposal_dir, filename)
     
